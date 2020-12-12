@@ -3,21 +3,23 @@ import os
 import configparser
 from github import Github
 from datetime import datetime
-from .config_access import set_token, get_token, get_remote_name, get_last_update, set_last_update_to_now
+from .config_access import set_token, get_token, get_remote_name
 
 @click.command()
-@click.option('-s', '--set-token', 'token', help='Set Github personal access token.')
+@click.option('-t', '--set-token', 'token', help='Set Github personal access token.')
+# @click.option('-r', '--set-repo', 'repo_name', help='Set name of Github repository where logbook is stored')
 def cli(token):
     """ A minimal command-line journal that saves to a Github repo """
     if token != None:
         set_token(token)
-        return 0
+        return None
 
     config_file = os.path.expanduser("~") + "/.config/ghlog/config.ini"
+    # This doesn't work if token was deleted from file
     if not os.path.exists(config_file):
         print("No personal access token added. To set token, user 'ghlog -s <token>'")
         print("Get help setting up at https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/creating-a-personal-access-token. Only repo permission is necessary.")
-        return 0
+        return None
 
     add_entry()
 
@@ -68,18 +70,28 @@ def add_entry():
     message = now.strftime("%m/%d/%Y - %H:%M:%S")
     # Update file
     repo.update_file(contents.path, message, new_contents, contents.sha, branch="main")
-    # Set last updated date
-    set_last_update_to_now()
 
 
 def add_headers():
     # This could probably look a little nicer
     output_lines = []
     now = datetime.now()
-    last_update = get_last_update()
-    last_year = int(last_update[-4:])
-    last_month = int(last_update[:2])
-    last_date = int(last_update[3:-5])
+    token = get_token()
+    g = Github(token)
+    user = g.get_user()
+    repo = user.get_repo(get_remote_name())
+    # Next two lines get most recent commit. Looking for a better way to do this that doesnt have to get every commit published
+    commits = repo.get_commits()
+    commit = commits[0]
+    last_commit_date = str(commit.commit.committer.date)[:10]
+    # Next 4 lines fix bug where dates dont show up because initial commit was made on the same day
+    try:
+        commits[1]
+    except IndexError:
+        last_commit_date = "-100/-1/-1"
+    last_year = int(last_commit_date[:4])
+    last_month = int(last_commit_date[5:-3])
+    last_date = int(last_commit_date[-2:])
     current_year = int(now.strftime("%Y"))
     current_month = int(now.strftime("%m"))
     current_date = int(now.strftime("%d"))
