@@ -8,20 +8,79 @@ from .config_access import set_token, get_token, get_remote_name
 @click.command()
 @click.option('-t', '--set-token', 'token', help='Set Github personal access token.')
 # @click.option('-r', '--set-repo', 'repo_name', help='Set name of Github repository where logbook is stored')
-def cli(token):
+@click.option('-d', '--get-day', 'date', help='Get log entries from a certain date. Use (mm/dd/yyyy).')
+def cli(token, date):
     """ A minimal command-line journal that saves to a Github repo """
     if token != None:
         set_token(token)
         return None
 
+    if date != None:
+        print(get_logs_by_date(date))
+        return None
+
     config_file = os.path.expanduser("~") + "/.config/ghlog/config.ini"
-    # This doesn't work if token was deleted from file
+    # This doesn't work if token was deleted from file, which is unlikely but still possible
     if not os.path.exists(config_file):
         print("No personal access token added. To set token, user 'ghlog -s <token>'")
         print("Get help setting up at https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/creating-a-personal-access-token. Only repo permission is necessary.")
         return None
 
     add_entry()
+
+def get_logs_by_date(datestring):
+    output_lines = []
+    token = get_token()
+    g = Github(token)
+    user = g.get_user()
+    repo = user.get_repo(get_remote_name())
+    contents = repo.get_contents("README.md", ref="main")
+    lines = contents.decoded_content.decode()
+    month_number = int(datestring[:2])
+    datetime_object = datetime.strptime(str(month_number), "%m")
+    month_name = datetime_object.strftime("%B")
+    day = int(datestring[3:-5])
+    year = int(datestring[-4:])
+    yearCorrect = False
+    monthCorrect = False
+    dayCorrect = False
+    linesList = lines.splitlines()
+    """
+    What this loop does:
+    * Goes down the list until it finds the desired year
+    * sets yearcorrect to true as long as a new year isn't encountered
+    * does the same for month and day
+    * If day is found, all lines below it are returned until dayCorrect is set to False
+      * This is done when a new year, month, or date is encountered
+    """
+    for line in linesList:
+        if line[:2] == "# ":
+            if line[2:] == str(year):
+                yearCorrect = True
+            else:
+                yearCorrect = False
+                dayCorrect = False
+        elif line[:3] == "## ":
+            if line[3:] == str(month_name) and yearCorrect:
+                monthCorrect = True
+            else:
+                monthCorrect = False
+                dayCorrect = False
+        elif line[:4] == "### ":
+            if line[4:] == str(day) and yearCorrect and monthCorrect:
+                dayCorrect = True
+                # Continue statement prevents the line with the date in it from being returned
+                continue
+            else:
+                dayCorrect = False
+
+        if dayCorrect:
+            output_lines.append(line)
+
+    output = '\n'.join(output_lines)
+    if output == '':
+        output = "No entries for that date"
+    return output
 
 
 def create_repo(repo_name="My-ghlog"):
