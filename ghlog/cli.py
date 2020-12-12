@@ -3,6 +3,7 @@ import os
 import configparser
 from github import Github
 from datetime import datetime
+from .config_access import set_token, get_token, get_remote_name, get_last_update, set_last_update_to_now
 
 @click.command()
 @click.option('-s', '--set-token', 'token', help='Set Github personal access token.')
@@ -19,27 +20,6 @@ def cli(token):
         return 0
 
     add_entry()
-
-
-def set_token(token):
-    config_file = os.path.expanduser("~") + "/.config/ghlog/config.ini"
-    if not os.path.exists(config_file):
-        os.makedirs(os.path.expanduser("~") + "/.config/ghlog")
-        f = open(config_file, 'w')
-        f.close()
-    config = configparser.ConfigParser()
-    config['DEFAULT'] = {'user_token': token}
-    with open(config_file, 'w') as configfile:
-        config.write(configfile)
-    print("token set")
-
-
-def get_token():
-    config_file = os.path.expanduser("~") + "/.config/ghlog/config.ini"
-    config = configparser.ConfigParser()
-    config.read(config_file)
-    token = config["DEFAULT"]["user_token"]
-    return token
 
 
 def create_repo(repo_name="My-ghlog"):
@@ -61,26 +41,13 @@ def create_repo(repo_name="My-ghlog"):
     with open(config_file, 'w') as configfile:
         config.write(configfile)
 
-def get_remote_name():
-    config_file = os.path.expanduser("~") + "/.config/ghlog/config.ini"
-    config = configparser.ConfigParser()
-    config.read(config_file)
-    try:
-        remote_name = config["DEFAULT"]["remote_name"]
-    except KeyError:
-        remote_name = None
-    return remote_name
 
 def add_entry():
     # Check if repo exists, if not create it
     # This method doesn't work if the user deleted their remote but kept their config file
     if get_remote_name() == None:
-        # Ask what the user would like to call their repo before creating it
-            # default to My-ghlog
+        # Ask what the user would like to call their repo before creating it; default to My-ghlog
         create_repo()
-    # file_content = repository.get_contents('sample.txt')
-    # Add last updated date to config
-        # would cause issues if using multiple differnet computers but fine for first release
     token = get_token()
     g = Github(token)
     user = g.get_user()
@@ -104,6 +71,7 @@ def add_entry():
     # Set last updated date
     set_last_update_to_now()
 
+
 def add_headers():
     # This could probably look a little nicer
     output_lines = []
@@ -126,25 +94,3 @@ def add_headers():
         output_lines.append("### " + str(current_date))
     output = '\n'.join(output_lines)
     return output
-
-
-def get_last_update():
-    config_file = os.path.expanduser("~") + "/.config/ghlog/config.ini"
-    config = configparser.ConfigParser()
-    config.read(config_file)
-    try:
-        last_update = config["DEFAULT"]["last_update"]
-    except KeyError:
-        last_update = "-1/-1/-100"
-    return last_update
-
-def set_last_update_to_now():
-    now = datetime.now()
-    set_update = now.strftime("%m/%d/%Y")
-
-    config_file = os.path.expanduser("~") + "/.config/ghlog/config.ini"
-    config = configparser.ConfigParser()
-    config.read(config_file)
-    config["DEFAULT"]["last_update"] = set_update
-    with open(config_file, 'w') as configfile:
-        config.write(configfile)
