@@ -12,7 +12,8 @@ from multiprocessing.pool import ThreadPool
 @click.option('-t', '--set-token', 'token', help='Set Github personal access token.')
 # @click.option('-r', '--set-repo', 'repo_name', help='Set name of Github repository where logbook is stored')
 @click.option('-d', '--get-day', 'date', help='Get log entries from a certain date. Use (mm/dd/yyyy).')
-def cli(token, date):
+@click.option('-m', '--make-readme', help='Combines all logs into the Github README', is_flag=True)
+def cli(token, date, make_readme):
     """ A minimal command-line journal that saves to a Github repo """
     if token is not None:
         set_token(token)
@@ -20,6 +21,10 @@ def cli(token, date):
 
     if date is not None:
         print(get_logs_by_date(date))
+        return None
+
+    if make_readme:
+        make_readme_md()
         return None
 
     config_file = os.path.expanduser("~") + "/.config/ghlog/config.ini"
@@ -119,6 +124,9 @@ def add_entry():
         create_repo()
 
     entry = input("Write your entry: ")
+    if entry == "":
+        print("Entry discarded")
+        return None
     now = datetime.now()
     current_time = now.strftime("%H:%M:%S")
     contents = entry + '\n'
@@ -132,42 +140,51 @@ def add_entry():
     repo.create_file(filename, message, contents, branch="main")
 
 
-def add_headers():
-    # This could probably look a little nicer
+def make_readme_md():
+    print("Creating readme...")
+    last_date = "0000/00/00"
     output_lines = []
-    now = datetime.now()
+
     token = get_token()
     g = Github(token)
     user = g.get_user()
     repo = user.get_repo(get_remote_name())
-    # Next two lines get most recent commit. Looking for a better way to do this that doesnt have to get every commit published
-    commits = repo.get_commits()
-    commit = commits[0]
-    last_commit_date = str(commit.commit.committer.date)[:10]
-    # Next 4 lines fix bug where dates dont show up because initial commit was made on the same day
-    try:
-        commits[1]
-    except IndexError:
-        last_commit_date = "-100/-1/-1"
-    last_year = int(last_commit_date[:4])
-    last_month = int(last_commit_date[5:-3])
-    last_date = int(last_commit_date[-2:])
-    current_year = int(now.strftime("%Y"))
-    current_month = int(now.strftime("%m"))
-    current_date = int(now.strftime("%d"))
+    contents = repo.get_contents("")
+    while contents:
+        file_content = contents.pop(0)
+        if file_content.type == "dir":
+            contents.extend(repo.get_contents(file_content.path))
+        else:
+            this_date = (file_content.path)[8:-13]
+            # The 2 lines below remove files that are in the root directory, which are not logs
+            if (file_content.path)[7] != '/':
+                continue
+            if this_date > last_date:
+                output_lines.append(add_headers(last_date, this_date))
+            last_date = this_date
+            output_lines.append(file_content.decoded_content.decode())
+    output = '\n'.join(output_lines)
+    readme_contents = repo.get_contents("README.md", ref="main")
+    repo.update_file("README.md", "Update README.md", output, readme_contents.sha, branch="main")
+
+
+
+def add_headers(last_date, this_date):
+    output_lines = []
+    last_year = int(last_date[:4])
+    last_month = int(last_date[5:-3])
+    last_day = int(last_date[-2:])
+    current_year = int(this_date[:4])
+    current_month = int(this_date[5:-3])
+    current_day = int(this_date[-2:])
     if current_year > last_year:
         output_lines.append("# " + str(current_year))
-        output_lines.append("## " + now.strftime("%B"))
-        output_lines.append("### " + str(current_date))
+        output_lines.append("## " + str(current_month))
+        output_lines.append("### " + str(current_day))
     elif current_month > last_month:
-        output_lines.append("## " + now.strftime("%B"))
-        output_lines.append("### " + str(current_date))
-    elif current_date > last_date:
-        output_lines.append("### " + str(current_date))
+        output_lines.append("## " + str(current_month))
+        output_lines.append("### " + str(current_day))
+    elif current_date > last_day:
+        output_lines.append("### " + str(current_day))
     output = '\n'.join(output_lines)
     return output
-
-
-def make_readme():
-
-    pass
