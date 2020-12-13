@@ -111,45 +111,25 @@ def create_repo(repo_name="My-Log"):
         config.write(configfile)
 
 
-def thread_function():
-    token = get_token()
-    g = Github(token)
-    user = g.get_user()
-    repo = user.get_repo(get_remote_name())
-    contents = repo.get_contents("README.md", ref="main")
-    return repo, contents
-
-
 def add_entry():
     # Check if repo exists, if not create it
     # This method doesn't work if the user deleted their remote but kept their config file
     if get_remote_name() is None:
         # Ask what the user would like to call their repo before creating it; default to My-ghlog
         create_repo()
-    # pool and async_result are for threading so that the thread_function can run while the user is adding input instead of before input
-    pool = ThreadPool(processes=1)
-    async_result = pool.apply_async(thread_function)
-    # Prompts user for their entry
+
     entry = input("Write your entry: ")
-    repo, contents = async_result.get()
-    # Quit the process if an empty entry is entered
-    if entry == "":
-        print("Entry discarded")
-        return 0
-    print("Uploading...")
     now = datetime.now()
     current_time = now.strftime("%H:%M:%S")
-    # add upload contents to new_contents
-    new_contents = contents.decoded_content.decode()
-    new_contents += add_headers()
-    new_contents += '\n' + current_time + " - " + entry + '\n'
+    contents = entry + '\n'
     message = now.strftime("%m/%d/%Y - %H:%M:%S")
-    # Update file
-    repo.update_file(contents.path,
-                     message,
-                     new_contents,
-                     contents.sha,
-                     branch="main")
+    filename = now.strftime("entries/%Y/%m/%d/%H:%M:%S.txt")
+
+    token = get_token()
+    g = Github(token)
+    user = g.get_user()
+    repo = user.get_repo(get_remote_name())
+    repo.create_file(filename, message, contents, branch="main")
 
 
 def add_headers():
@@ -186,3 +166,8 @@ def add_headers():
         output_lines.append("### " + str(current_date))
     output = '\n'.join(output_lines)
     return output
+
+
+def make_readme():
+
+    pass
