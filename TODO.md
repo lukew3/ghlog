@@ -11,3 +11,10 @@
 * Option to delete last entry in case a person regrets would rather not publish what they just wrote
 
 * Add option to save local copy of repo to make the application faster?
+
+* Add -e option to export to a directory of nested folders and files
+
+* Make a logo for the app
+
+* Make a system where files in directories are uploaded to github and then concactenated into README for simplified viewing
+  * README could be made with github actions so that users don't have to do it on their own pc
