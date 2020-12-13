@@ -11,3 +11,5 @@
   * If user deletes the remote repo, errors are thrown
 
 * Option to delete last entry in case a person regrets would rather not publish what they just wrote
+
+* Add option to save local copy of repo to make the application faster
