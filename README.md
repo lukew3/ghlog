@@ -1,7 +1,7 @@
 # ghlog
 
 ## About
-ghlog (Github Log) allows you to create a digital logbook stored as a Github repository. Easily write time and date marked journal entries through the command line.
+ghlog (Github Log) allows you to create a digital logbook/journal stored as a Github repository. Easily write time and date marked journal entries through the command line.
 
 ## Installation
 `pip install ghlog`
