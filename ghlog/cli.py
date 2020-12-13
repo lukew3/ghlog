@@ -31,6 +31,7 @@ def cli(token, date):
 
     add_entry()
 
+
 def get_logs_by_date(datestring):
     output_lines = []
     token = get_token()
@@ -94,7 +95,7 @@ def create_repo(repo_name="My-ghlog"):
     print("Creating Github repo...")
     repo = user.create_repo(repo_name, private=True)
     # Add README.md with title to github
-    titlebar = '='*len(repo_name)
+    titlebar = '=' * len(repo_name)
     content = repo_name + '\n' + titlebar + '\n'
     repo.create_file("README.md", "initial commit", content, branch="main")
     # Write repo name to config
@@ -139,7 +140,11 @@ def add_entry():
     new_contents += '\n' + current_time + " - " + entry + '\n'
     message = now.strftime("%m/%d/%Y - %H:%M:%S")
     # Update file
-    repo.update_file(contents.path, message, new_contents, contents.sha, branch="main")
+    repo.update_file(contents.path,
+                     message,
+                     new_contents,
+                     contents.sha,
+                     branch="main")
 
 
 def add_headers():

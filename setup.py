@@ -11,8 +11,6 @@ setup(
     packages=find_packages(),
     install_requires=['pygithub'],
     entry_points={
-	   'console_scripts': [
-            'ghlog=ghlog.cli:cli'
-	   ],
+        'console_scripts': ['ghlog=ghlog.cli:cli'],
     },
 )
