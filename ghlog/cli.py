@@ -105,6 +105,7 @@ def create_repo(repo_name="My-ghlog"):
     with open(config_file, 'w') as configfile:
         config.write(configfile)
 
+
 def thread_function():
     token = get_token()
     g = Github(token)
@@ -117,17 +118,15 @@ def thread_function():
 def add_entry():
     # Check if repo exists, if not create it
     # This method doesn't work if the user deleted their remote but kept their config file
-    start_time = time.time()
     if get_remote_name() == None:
         # Ask what the user would like to call their repo before creating it; default to My-ghlog
         create_repo()
+    # pool and async_result are for threading so that the thread_function can run while the user is adding input instead of before input
     pool = ThreadPool(processes=1)
     async_result = pool.apply_async(thread_function)
-    print("--- %s seconds ---" % (time.time() - start_time))
     # Prompts user for their entry
     entry = input("Write your entry: ")
     repo, contents = async_result.get()
-    start_time = time.time()
     # Quit the process if an empty entry is entered
     if entry == "":
         print("Entry discarded")
@@ -141,7 +140,6 @@ def add_entry():
     message = now.strftime("%m/%d/%Y - %H:%M:%S")
     # Update file
     repo.update_file(contents.path, message, new_contents, contents.sha, branch="main")
-    print("--- %s seconds ---" % (time.time() - start_time))
 
 
 def add_headers():
