@@ -3,13 +3,11 @@
   * Day already done
 
 * Optimize data transfer time
-  * Currently, the whole file has to be downloaded and then uploaded for the program to work
-  * I could store it locally, but that would defeat the point of the project storing the file on Github and might risk security if the persons computer was compromised
-  * Multithread so that while user is typing input, data is being fetched
+  * It would be a major improvement if you could just add a line to github repo instead of downloading the entire file and just reuploading everything plus one line
 
 * Make sure repository exists before trying to get information from it
   * If user deletes the remote repo, errors are thrown
 
 * Option to delete last entry in case a person regrets would rather not publish what they just wrote
 
-* Add option to save local copy of repo to make the application faster
+* Add option to save local copy of repo to make the application faster?

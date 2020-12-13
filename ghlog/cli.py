@@ -87,7 +87,7 @@ def get_logs_by_date(datestring):
     return output
 
 
-def create_repo(repo_name="My-ghlog"):
+def create_repo(repo_name="My-Log"):
     token = get_token()
     g = Github(token)
     user = g.get_user()
