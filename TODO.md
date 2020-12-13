@@ -24,3 +24,5 @@
     * Same thing for days
 
 * It might be cool to have a progress bar when creating a README if it takes a long time when the repo gets bigger
+
+* Rename --get-day option to fit multiple time-periods

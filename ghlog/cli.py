@@ -11,7 +11,7 @@ from multiprocessing.pool import ThreadPool
 @click.command()
 @click.option('-t', '--set-token', 'token', help='Set Github personal access token.')
 # @click.option('-r', '--set-repo', 'repo_name', help='Set name of Github repository where logbook is stored')
-@click.option('-d', '--get-day', 'date', help='Get log entries from a certain date. Use (mm/dd/yyyy).')
+@click.option('-d', '--get-day', 'date', help='Get log entries from a certain date, month, or year. Use (yyyy/mm/dd) and stop after your desired time. Ex: 2020/12 for december 2020')
 @click.option('-m', '--make-readme', help='Combines all logs into the Github README', is_flag=True)
 def cli(token, date, make_readme):
     """ A minimal command-line journal that saves to a Github repo """
@@ -43,48 +43,14 @@ def get_logs_by_date(datestring):
     g = Github(token)
     user = g.get_user()
     repo = user.get_repo(get_remote_name())
-    contents = repo.get_contents("README.md", ref="main")
-    lines = contents.decoded_content.decode()
-    month_number = int(datestring[:2])
-    datetime_object = datetime.strptime(str(month_number), "%m")
-    month_name = datetime_object.strftime("%B")
-    day = int(datestring[3:-5])
-    year = int(datestring[-4:])
-    yearCorrect = False
-    monthCorrect = False
-    dayCorrect = False
-    linesList = lines.splitlines()
-    """
-    What this loop does:
-    * Goes down the list until it finds the desired year
-    * sets yearcorrect to true as long as a new year isn't encountered
-    * does the same for month and day
-    * If day is found, all lines below it are returned until dayCorrect is set to False
-      * This is done when a new year, month, or date is encountered
-    """
-    for line in linesList:
-        if line[:2] == "# ":
-            if line[2:] == str(year):
-                yearCorrect = True
-            else:
-                yearCorrect = False
-                dayCorrect = False
-        elif line[:3] == "## ":
-            if line[3:] == str(month_name) and yearCorrect:
-                monthCorrect = True
-            else:
-                monthCorrect = False
-                dayCorrect = False
-        elif line[:4] == "### ":
-            if line[4:] == str(day) and yearCorrect and monthCorrect:
-                dayCorrect = True
-                # Continue statement prevents the line with the date in it from being returned
-                continue
-            else:
-                dayCorrect = False
-
-        if dayCorrect:
-            output_lines.append(line)
+    contents = repo.get_contents("entries/" + datestring)
+    # This could be reused to work for year and month spaces of time
+    while contents:
+        file_content = contents.pop(0)
+        if file_content.type == "dir":
+            contents.extend(repo.get_contents(file_content.path))
+        else:
+            output_lines.append(file_content.decoded_content.decode())
 
     output = '\n'.join(output_lines)
     if output == '':
