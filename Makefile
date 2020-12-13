@@ -1,5 +1,5 @@
 IGNORE_ERRORS = E501,F401,F403,F405
-PKG = mathgenerator
+PKG = ghlog
 PYTHON ?= python3
 
 deps:
