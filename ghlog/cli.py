@@ -14,11 +14,11 @@ from multiprocessing.pool import ThreadPool
 @click.option('-d', '--get-day', 'date', help='Get log entries from a certain date. Use (mm/dd/yyyy).')
 def cli(token, date):
     """ A minimal command-line journal that saves to a Github repo """
-    if token != None:
+    if token is not None:
         set_token(token)
         return None
 
-    if date != None:
+    if date is not None:
         print(get_logs_by_date(date))
         return None
 
@@ -92,6 +92,10 @@ def create_repo(repo_name="My-ghlog"):
     g = Github(token)
     user = g.get_user()
     repos = user.get_repos()
+    for repo in repos:
+        if repo.name == repo_name:
+            print("Repo with name '" + repo_name + "' already exists. Delete it or choose a different name.")
+            return None
     print("Creating Github repo...")
     repo = user.create_repo(repo_name, private=True)
     # Add README.md with title to github
@@ -119,7 +123,7 @@ def thread_function():
 def add_entry():
     # Check if repo exists, if not create it
     # This method doesn't work if the user deleted their remote but kept their config file
-    if get_remote_name() == None:
+    if get_remote_name() is None:
         # Ask what the user would like to call their repo before creating it; default to My-ghlog
         create_repo()
     # pool and async_result are for threading so that the thread_function can run while the user is adding input instead of before input
@@ -132,6 +136,7 @@ def add_entry():
     if entry == "":
         print("Entry discarded")
         return 0
+    print("Uploading...")
     now = datetime.now()
     current_time = now.strftime("%H:%M:%S")
     # add upload contents to new_contents
