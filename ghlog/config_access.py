@@ -1,12 +1,30 @@
 import configparser
 import os
 from cryptography.fernet import Fernet
+from sys import platform
+
+def get_config_path():
+    if platform == "linux" or platform == "linux2":
+        config_path = os.path.expanduser("~") + "/.config/ghlog/"
+    # darwin is the name for mac os x
+    elif platform == "darwin":
+        config_path = os.path.expanduser("~") + "/Library/Preferences/ghlog/"
+    elif platform == "win32":
+        username = os.getlogin()
+        config_path = "C:\\Users\\" + username + "\\AppData\\Roaming\\ghlog\\"
+    return config_path
+
+
+def get_config_file():
+    config_file = get_config_path() + "config.ini"
+    return config_file
 
 
 def set_token(token):
-    config_file = os.path.expanduser("~") + "/.config/ghlog/config.ini"
+    config_path = get_config_path()
+    config_file = get_config_file()
     if not os.path.exists(config_file):
-        os.makedirs(os.path.expanduser("~") + "/.config/ghlog")
+        os.makedirs(config_path)
         f = open(config_file, 'w')
         f.close()
     config = configparser.ConfigParser()
@@ -17,17 +35,15 @@ def set_token(token):
 
 
 def get_token():
-    config_file = os.path.expanduser("~") + "/.config/ghlog/config.ini"
     config = configparser.ConfigParser()
-    config.read(config_file)
+    config.read(get_config_file())
     token = config["DEFAULT"]["user_token"]
     return token
 
 
 def get_remote_name():
-    config_file = os.path.expanduser("~") + "/.config/ghlog/config.ini"
     config = configparser.ConfigParser()
-    config.read(config_file)
+    config.read(get_config_file())
     try:
         remote_name = config["DEFAULT"]["remote_name"]
     except KeyError:
@@ -36,11 +52,25 @@ def get_remote_name():
 
 
 def make_encryption_key():
-    config_file = os.path.expanduser("~") + "/.config/ghlog/config.ini"
+    config_file = get_config_file()
     key = Fernet.generate_key()
     key_string = key.decode('UTF-8')
     config = configparser.ConfigParser()
     config.read(config_file)
+    # Check if encryption key already exists and then ask if the user wants to replace it if it exists
+    try:
+        old_key_string = config['DEFAULT']['encryption_key']
+        response = input("Encryption key already exists. Replacing it will result in loss of current logs. Would you like to replace it with a new key?(y/n)\n")
+        if response == 'y' or response == 'Y':
+            print("Replacing key")
+        elif response == 'n' or response == 'N':
+            print("Keeping current key")
+            return None
+        else:
+            print("Invalid response. Operation aborted.")
+            return None
+    except KeyError:
+        old_key_string = ""
     config['DEFAULT']['encryption_key'] = key_string
     with open(config_file, 'w') as configfile:
         config.write(configfile)
@@ -48,9 +78,8 @@ def make_encryption_key():
 
 
 def get_encryption_key():
-    config_file = os.path.expanduser("~") + "/.config/ghlog/config.ini"
     config = configparser.ConfigParser()
-    config.read(config_file)
+    config.read(get_config_file())
     try:
         key_string = config["DEFAULT"]["encryption_key"]
         key = key_string.encode('UTF-8')

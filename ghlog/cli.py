@@ -12,7 +12,7 @@ from cryptography.fernet import Fernet
 @click.command()
 @click.option('-t', '--set-token', 'token', help='Set Github personal access token.')
 @click.option('-r', '--create-repo', 'new_repo_name', help='Create new Github repo with passed name.')
-@click.option('-d', '--get-day', 'date', help='Get log entries from a certain date, month, or year. Use (yyyy/mm/dd) and stop after your desired time. Ex: 2020/12 for December 2020, 2019/08/15 for August 15th 2019')
+@click.option('-f', '--fetch-logs', 'date', help='Get log entries from a certain date, month, or year. Use (yyyy/mm/dd) and stop after your desired time. Ex: 2020/12 for December 2020, 2019/08/15 for August 15th 2019')
 @click.option('-m', '--make-readme', help='Combines all logs into the Github README', is_flag=True)
 @click.option('-e', '--encrypt', help='Encrypt your logs from now on. Warning: your logs will not be readable on Github, they must be decrypted locally to be readable.', is_flag=True)
 def cli(token, new_repo_name, date, make_readme, encrypt):
@@ -40,7 +40,7 @@ def cli(token, new_repo_name, date, make_readme, encrypt):
     config_file = os.path.expanduser("~") + "/.config/ghlog/config.ini"
     # This doesn't work if token was deleted from file, which is unlikely but still possible
     if not os.path.exists(config_file):
-        print("No personal access token added. To set token, user 'ghlog -s <token>'")
+        print("No personal access token added. To set token, user 'ghlog -t <token>'")
         print("Get help setting up at https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/creating-a-personal-access-token. Only repo permission is necessary.")
         return None
 
