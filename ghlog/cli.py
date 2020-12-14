@@ -94,7 +94,6 @@ def add_entry():
         print("Entry discarded")
         return None
     now = datetime.now()
-    current_time = now.strftime("%H:%M:%S")
     contents = entry + '\n'
     message = now.strftime("%m/%d/%Y - %H:%M:%S")
     filename = now.strftime("entries/%Y/%m/%d/%H:%M:%S.txt")
@@ -134,7 +133,6 @@ def make_readme_md():
     repo.update_file("README.md", "Update README.md", output, readme_contents.sha, branch="main")
 
 
-
 def add_headers(last_date, this_date):
     output_lines = []
     last_year = int(last_date[:4])
@@ -150,7 +148,7 @@ def add_headers(last_date, this_date):
     elif current_month > last_month:
         output_lines.append("## " + str(current_month))
         output_lines.append("### " + str(current_day))
-    elif current_date > last_day:
+    elif current_day > last_day:
         output_lines.append("### " + str(current_day))
     output = '\n'.join(output_lines)
     return output
