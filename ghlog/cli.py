@@ -10,15 +10,18 @@ from cryptography.fernet import Fernet
 
 @click.command()
 @click.option('-t', '--set-token', 'token', help='Set Github personal access token.')
-# @click.option('-r', '--set-repo', 'repo_name', help='Set name of Github repository where logbook is stored')
-@click.option('-d', '--get-day', 'date', help='Get log entries from a certain date, month, or year. Use (yyyy/mm/dd) and stop after your desired time. Ex: 2020/12 for december 2020')
+@click.option('-r', '--create-repo', 'new_repo_name', help='Create new Github repo with passed name.')
+@click.option('-d', '--get-day', 'date', help='Get log entries from a certain date, month, or year. Use (yyyy/mm/dd) and stop after your desired time. Ex: 2020/12 for December 2020, 2019/08/15 for August 15th 2019')
 @click.option('-m', '--make-readme', help='Combines all logs into the Github README', is_flag=True)
-@click.option('-c', '--cryptography', help='Makes an encryption key', is_flag=True)
-
-def cli(token, date, make_readme, cryptography):
+@click.option('-e', '--encrypt', help='Encrypt your logs from now on. Warning: your logs will not be readable on Github, they must be decrypted locally to be readable.', is_flag=True)
+def cli(token, new_repo_name, date, make_readme, encrypt):
     """ A minimal command-line journal that saves to a Github repo """
     if token is not None:
         set_token(token)
+        return None
+
+    if new_repo_name is not None:
+        create_repo(repo_name=new_repo_name)
         return None
 
     if date is not None:
@@ -29,7 +32,7 @@ def cli(token, date, make_readme, cryptography):
         make_readme_md()
         return None
 
-    if cryptography:
+    if encrypt:
         make_encryption_key()
         return None
 
