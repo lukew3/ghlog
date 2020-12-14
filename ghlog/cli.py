@@ -67,7 +67,7 @@ def get_logs_by_date(datestring):
                     log_contents = decrypt_text(log_contents)
                 output_lines.append(log_contents)
         output = '\n'.join(output_lines)
-    except:
+    except Exception:
         output = "No entries found for specified day(s)"
     return output
 
