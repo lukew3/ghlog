@@ -1,6 +1,6 @@
 import configparser
 import os
-
+from cryptography.fernet import Fernet
 
 def set_token(token):
     config_file = os.path.expanduser("~") + "/.config/ghlog/config.ini"
@@ -32,3 +32,27 @@ def get_remote_name():
     except KeyError:
         remote_name = None
     return remote_name
+
+
+def make_encryption_key():
+    config_file = os.path.expanduser("~") + "/.config/ghlog/config.ini"
+    key = Fernet.generate_key()
+    key_string = key.decode('UTF-8')
+    config = configparser.ConfigParser()
+    config.read(config_file)
+    config['DEFAULT']['encryption_key'] = key_string
+    with open(config_file, 'w') as configfile:
+        config.write(configfile)
+    print("Your encryption key has been stored locally in .config/ghlog/config.ini")
+
+
+def get_encryption_key():
+    config_file = os.path.expanduser("~") + "/.config/ghlog/config.ini"
+    config = configparser.ConfigParser()
+    config.read(config_file)
+    try:
+        key_string = config["DEFAULT"]["encryption_key"]
+        key = key_string.encode('UTF-8')
+    except KeyError:
+        key = None
+    return key
