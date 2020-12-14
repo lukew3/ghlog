@@ -3,20 +3,26 @@ import os
 import configparser
 from github import Github
 from datetime import datetime
-from .config_access import set_token, get_token, get_remote_name
+from .config_access import set_token, get_token, get_remote_name, make_encryption_key, get_encryption_key
 import time
 from multiprocessing.pool import ThreadPool
+from cryptography.fernet import Fernet
 
 
 @click.command()
 @click.option('-t', '--set-token', 'token', help='Set Github personal access token.')
-# @click.option('-r', '--set-repo', 'repo_name', help='Set name of Github repository where logbook is stored')
-@click.option('-d', '--get-day', 'date', help='Get log entries from a certain date, month, or year. Use (yyyy/mm/dd) and stop after your desired time. Ex: 2020/12 for december 2020')
+@click.option('-r', '--create-repo', 'new_repo_name', help='Create new Github repo with passed name.')
+@click.option('-d', '--get-day', 'date', help='Get log entries from a certain date, month, or year. Use (yyyy/mm/dd) and stop after your desired time. Ex: 2020/12 for December 2020, 2019/08/15 for August 15th 2019')
 @click.option('-m', '--make-readme', help='Combines all logs into the Github README', is_flag=True)
-def cli(token, date, make_readme):
+@click.option('-e', '--encrypt', help='Encrypt your logs from now on. Warning: your logs will not be readable on Github, they must be decrypted locally to be readable.', is_flag=True)
+def cli(token, new_repo_name, date, make_readme, encrypt):
     """ A minimal command-line journal that saves to a Github repo """
     if token is not None:
         set_token(token)
+        return None
+
+    if new_repo_name is not None:
+        create_repo(repo_name=new_repo_name)
         return None
 
     if date is not None:
@@ -25,6 +31,10 @@ def cli(token, date, make_readme):
 
     if make_readme:
         make_readme_md()
+        return None
+
+    if encrypt:
+        make_encryption_key()
         return None
 
     config_file = os.path.expanduser("~") + "/.config/ghlog/config.ini"
@@ -50,7 +60,10 @@ def get_logs_by_date(datestring):
         if file_content.type == "dir":
             contents.extend(repo.get_contents(file_content.path))
         else:
-            output_lines.append(file_content.decoded_content.decode())
+            log_contents = file_content.decoded_content.decode()
+            if get_encryption_key() is not None:
+                log_contents = decrypt_text(log_contents)
+            output_lines.append(log_contents)
 
     output = '\n'.join(output_lines)
     if output == '':
@@ -102,6 +115,9 @@ def add_entry():
     g = Github(token)
     user = g.get_user()
     repo = user.get_repo(get_remote_name())
+    # If encryption key is in config, encrypt the upload
+    if get_encryption_key() is not None:
+        contents = encrypt_text(contents)
     repo.create_file(filename, message, contents, branch="main")
 
 
@@ -151,4 +167,19 @@ def add_headers(last_date, this_date):
     elif current_day > last_day:
         output_lines.append("### " + str(current_day))
     output = '\n'.join(output_lines)
+    return output
+
+
+def encrypt_text(input):
+    encoded = input.encode()
+    f = Fernet(get_encryption_key())
+    encrypted = f.encrypt(encoded)
+    return encrypted
+
+
+def decrypt_text(input):
+    encoded = input.encode()
+    f = Fernet(get_encryption_key())
+    decrypted = f.decrypt(encoded)
+    output = decrypted.decode()
     return output
