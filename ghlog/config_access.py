@@ -2,6 +2,7 @@ import configparser
 import os
 from cryptography.fernet import Fernet
 
+
 def set_token(token):
     config_file = os.path.expanduser("~") + "/.config/ghlog/config.ini"
     if not os.path.exists(config_file):

@@ -8,6 +8,7 @@ import time
 from multiprocessing.pool import ThreadPool
 from cryptography.fernet import Fernet
 
+
 @click.command()
 @click.option('-t', '--set-token', 'token', help='Set Github personal access token.')
 @click.option('-r', '--create-repo', 'new_repo_name', help='Create new Github repo with passed name.')
@@ -60,7 +61,7 @@ def get_logs_by_date(datestring):
             contents.extend(repo.get_contents(file_content.path))
         else:
             log_contents = file_content.decoded_content.decode()
-            if get_encryption_key() != None:
+            if get_encryption_key() is not None:
                 log_contents = decrypt_text(log_contents)
             output_lines.append(log_contents)
 
@@ -115,7 +116,7 @@ def add_entry():
     user = g.get_user()
     repo = user.get_repo(get_remote_name())
     # If encryption key is in config, encrypt the upload
-    if get_encryption_key() != None:
+    if get_encryption_key() is not None:
         contents = encrypt_text(contents)
     repo.create_file(filename, message, contents, branch="main")
 
@@ -168,11 +169,13 @@ def add_headers(last_date, this_date):
     output = '\n'.join(output_lines)
     return output
 
+
 def encrypt_text(input):
     encoded = input.encode()
     f = Fernet(get_encryption_key())
     encrypted = f.encrypt(encoded)
     return encrypted
+
 
 def decrypt_text(input):
     encoded = input.encode()
