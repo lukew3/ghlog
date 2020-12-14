@@ -17,3 +17,6 @@
 
 * Rename --get-day option to fit multiple time-periods
   * Make the documentation more understandable
+
+* Option to remove encryption if a user decides that they don't actually want encryption
+  * Maybe if you use the -e flag when encryption is already active it asks to make sure you want to remove encryption and then removes it

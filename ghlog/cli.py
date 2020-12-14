@@ -49,25 +49,26 @@ def cli(token, new_repo_name, date, make_readme, encrypt):
 
 def get_logs_by_date(datestring):
     output_lines = []
+    output = ""
     token = get_token()
     g = Github(token)
     user = g.get_user()
     repo = user.get_repo(get_remote_name())
-    contents = repo.get_contents("entries/" + datestring)
-    # This could be reused to work for year and month spaces of time
-    while contents:
-        file_content = contents.pop(0)
-        if file_content.type == "dir":
-            contents.extend(repo.get_contents(file_content.path))
-        else:
-            log_contents = file_content.decoded_content.decode()
-            if get_encryption_key() is not None:
-                log_contents = decrypt_text(log_contents)
-            output_lines.append(log_contents)
-
-    output = '\n'.join(output_lines)
-    if output == '':
-        output = "No entries for that date"
+    try:
+        contents = repo.get_contents("entries/" + datestring)
+        # This could be reused to work for year and month spaces of time
+        while contents:
+            file_content = contents.pop(0)
+            if file_content.type == "dir":
+                contents.extend(repo.get_contents(file_content.path))
+            else:
+                log_contents = file_content.decoded_content.decode()
+                if get_encryption_key() is not None:
+                    log_contents = decrypt_text(log_contents)
+                output_lines.append(log_contents)
+        output = '\n'.join(output_lines)
+    except:
+        output = "No entries found for specified day(s)"
     return output
 
 
