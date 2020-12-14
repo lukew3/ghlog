@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='ghlog',
-    version='1.0.2',
+    version='1.0.3',
     description='A simple logbook that upload to github',
     url='https://github.com/lukew3/ghlog',
     author='Luke Weiler',

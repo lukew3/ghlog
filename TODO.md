@@ -15,8 +15,6 @@
 
 * It might be cool to have a progress bar when creating a README if it takes a long time when the repo gets bigger
 
-* Rename --get-day option to fit multiple time-periods
-  * Make the documentation more understandable
+* Add capability to not pass an argument for -f to get all logs in journal
 
-* Option to remove encryption if a user decides that they don't actually want encryption
-  * Maybe if you use the -e flag when encryption is already active it asks to make sure you want to remove encryption and then removes it
+* Make the documentation for -f more understandable
