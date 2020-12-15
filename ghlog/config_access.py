@@ -36,6 +36,7 @@ def make_empty_config():
     with open(config_file, 'w') as configfile:
         config.write(configfile)
 
+
 def set_token(token):
     config_file = get_config_file()
     if not os.path.exists(config_file):

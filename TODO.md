@@ -22,7 +22,3 @@
 * Add option to save readme locally
 
 * Add option to unencrypt in config
-[DEFAULT]
-user_token = 06ffe1134fed2c75d0002fa074127026a0db6bed
-remote_name = mylog
-encryption_key = 295vnjXW56TxDkYJpR_DcbjUNU0MouHiof6X0o50ovE=
