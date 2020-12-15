@@ -3,6 +3,7 @@ import os
 from cryptography.fernet import Fernet
 from sys import platform
 
+
 def get_config_path():
     if platform == "linux" or platform == "linux2":
         config_path = os.path.expanduser("~") + "/.config/ghlog/"
@@ -59,7 +60,7 @@ def make_encryption_key():
     config.read(config_file)
     # Check if encryption key already exists and then ask if the user wants to replace it if it exists
     try:
-        old_key_string = config['DEFAULT']['encryption_key']
+        config['DEFAULT']['encryption_key']
         response = input("Encryption key already exists. Replacing it will result in loss of current logs. Would you like to replace it with a new key?(y/n)\n")
         if response == 'y' or response == 'Y':
             print("Replacing key")
@@ -70,7 +71,7 @@ def make_encryption_key():
             print("Invalid response. Operation aborted.")
             return None
     except KeyError:
-        old_key_string = ""
+        pass
     config['DEFAULT']['encryption_key'] = key_string
     with open(config_file, 'w') as configfile:
         config.write(configfile)
