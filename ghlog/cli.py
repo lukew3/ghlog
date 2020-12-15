@@ -16,10 +16,8 @@ def cli(ctx):
     # Check if config is setup before run, set up if not made yet
     if not os.path.exists(get_config_file()):
         make_empty_config()
-    # If no subcommands are passed
+    # If no subcommands are passed this is run
     if ctx.invoked_subcommand is None:
-        config_file = os.path.expanduser("~") + "/.config/ghlog/config.ini"
-        # This doesn't work if token was deleted from file, which is unlikely but still possible
         if get_token() == '':
             print("No personal access token added. To set token, user 'ghlog config -t <token>'")
             print("Get help setting up at https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/creating-a-personal-access-token. Only repo permission is necessary.")
@@ -29,16 +27,16 @@ def cli(ctx):
 
 @cli.command()
 @click.argument('config')
-@click.option('-t', '--set-token', 'token', help='Set Github personal access token.')
+@click.option('-t', '--set-token', 'new_token', help='Set Github personal access token.')
 @click.option('-e', '--encrypt', help='Encrypt your logs from now on. Warning: your logs will not be readable on Github, they must be decrypted locally to be readable.', is_flag=True)
 @click.option('-r', '--repo', 'new_repo_name', help='Name the repository you want logs to be stored in. If it does not exist, it will be created for you.')
-def config(encrypt, set_token, new_repo_name):
+def config(encrypt, new_token, new_repo_name):
     """ Configure ghlog. See ghlog config --help for options """
     if encrypt:
         make_encryption_key()
 
-    if set_token is not None:
-        set_token(token)
+    if new_token is not None:
+        set_token(new_token)
 
     if new_repo_name is not None:
         # Check if repo exists before creating it
