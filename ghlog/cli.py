@@ -197,6 +197,7 @@ def decrypt_text(input):
     output = decrypted.decode()
     return output
 
+
 def activate_encryption():
     make_encryption_key()
     encrypted_line = ""
