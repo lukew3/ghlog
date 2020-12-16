@@ -1,21 +1,20 @@
 # ghlog
 ![ghlog_logo](https://github.com/lukew3/ghlog/blob/main/ghlog_logo.png?raw=true)
 ## About
-ghlog (Github Log) allows you to create a digital logbook/journal stored as a Github repository. Easily write time and date marked journal entries through the cli.
+ghlog (Github Log) allows you to create a digital logbook/journal stored as a Github repository. Easily write time and date marked journal entries through the cli. [Here's an example of what a full repo might look like.](https://github.com/lukew3/ghlog-demo)
 
 ## Installation
 `pip install ghlog`
-After installation, you need to add a Github Personal Access Token in order for ghlog to work. To do this, [generate a personal access token](https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/creating-a-personal-access-token) and add it to ghlog with `ghlog config -t <personal-access-token>`
 
 After installation, you need to add a Github Personal Access Token in order for ghlog to work. To do this, [generate a personal access token](https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/creating-a-personal-access-token) and add it to ghlog with `ghlog config -t <personal-access-token>`
 
 ## Features
 
 ### Simplicity
-Ghlog enables users to quickly add a log entry from the terminal by using the command `ghlog`. After `ghlog` is run, a prompt will appear and you simply type the text you wish to add.
+All you have to do to add a log entry is run the command `ghlog` and then type your entry after the prompt.
 
 ### Security
-Storing possibly sensitive information publicly is not a good idea. To protect your privacy, ghlog automatically saves to a private repository so that other Github users cannot access your logs. If you are more concerned that somebody might hack your account or access your data from inside of Github, you can encrypt your logs, using `ghlog config -e`.
+To protect your privacy, ghlog automatically saves to a private repository so that other Github users cannot access your logs. If you are more concerned that somebody might hack your account or access your data from inside of Github, you can encrypt your logs, using `ghlog config -e`.
 
 ## Usage
 * `ghlog` - Prompts the user for a new entry. Note that the personal access token must be added before this can be run.
