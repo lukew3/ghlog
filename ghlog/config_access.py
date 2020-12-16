@@ -75,8 +75,7 @@ def make_encryption_key():
     config = configparser.ConfigParser()
     config.read(config_file)
     # Check if encryption key already exists and then ask if the user wants to replace it if it exists
-    try:
-        config['DEFAULT']['encryption_key']
+    if config['DEFAULT']['encryption_key'] != '':
         response = input("Encryption key already exists. Replacing it will result in loss of current logs. Would you like to replace it with a new key?(y/n)\n")
         if response == 'y' or response == 'Y':
             print("Replacing key")
@@ -86,8 +85,6 @@ def make_encryption_key():
         else:
             print("Invalid response. Operation aborted.")
             return None
-    except KeyError:
-        pass
     config['DEFAULT']['encryption_key'] = key_string
     with open(config_file, 'w') as configfile:
         config.write(configfile)
@@ -97,9 +94,8 @@ def make_encryption_key():
 def get_encryption_key():
     config = configparser.ConfigParser()
     config.read(get_config_file())
-    try:
-        key_string = config["DEFAULT"]["encryption_key"]
-        key = key_string.encode('UTF-8')
-    except KeyError:
-        key = None
+    key_string = config["DEFAULT"]["encryption_key"]
+    if key_string == '':
+        return ''
+    key = key_string.encode('UTF-8')
     return key

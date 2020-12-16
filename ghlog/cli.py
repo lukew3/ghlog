@@ -153,7 +153,7 @@ def add_entry():
     user = g.get_user()
     repo = user.get_repo(get_remote_name())
     # If encryption key is in config, encrypt the upload
-    if get_encryption_key() is not None:
+    if get_encryption_key() != '':
         contents = encrypt_text(contents)
     repo.create_file(filename, message, contents, branch="main")
 
