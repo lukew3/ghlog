@@ -21,15 +21,31 @@ def get_config_file():
     return config_file
 
 
-def set_token(token):
-    config_path = get_config_path()
+def make_empty_config():
     config_file = get_config_file()
+    # Checking just in case this was called by accident
     if not os.path.exists(config_file):
-        os.makedirs(config_path)
+        if not os.path.exists(get_config_path()):
+            os.makedirs(get_config_path())
         f = open(config_file, 'w')
         f.close()
     config = configparser.ConfigParser()
-    config['DEFAULT'] = {'user_token': token}
+    config['DEFAULT'] = {'user_token': '',
+                         'remote_name': '',
+                         'encryption_key': ''}
+    with open(config_file, 'w') as configfile:
+        config.write(configfile)
+
+
+def set_token(token):
+    config_file = get_config_file()
+    if not os.path.exists(config_file):
+        os.makedirs(get_config_path())
+        f = open(config_file, 'w')
+        f.close()
+    config = configparser.ConfigParser()
+    config.read(get_config_file())
+    config['DEFAULT']['user_token'] = token
     with open(config_file, 'w') as configfile:
         config.write(configfile)
     print("token set")

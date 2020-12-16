@@ -3,51 +3,49 @@ import os
 import configparser
 from github import Github
 from datetime import datetime
-from .config_access import set_token, get_token, get_remote_name, make_encryption_key, get_encryption_key
+from .config_access import set_token, get_token, get_remote_name, make_encryption_key, get_encryption_key, get_config_file, make_empty_config
 import time
 from multiprocessing.pool import ThreadPool
 from cryptography.fernet import Fernet
 
 
-@click.command()
-@click.option('-t', '--set-token', 'token', help='Set Github personal access token.')
-@click.option('-r', '--create-repo', 'new_repo_name', help='Create new Github repo with passed name.')
-@click.option('-f', '--fetch-logs', 'date', help='Get log entries from a certain date, month, or year. Use (yyyy/mm/dd) and stop after your desired time. Ex: 2020/12 for December 2020, 2019/08/15 for August 15th 2019')
-@click.option('-m', '--make-readme', help='Combines all logs into the Github README', is_flag=True)
-@click.option('-e', '--encrypt', help='Encrypt your logs from now on. Warning: your logs will not be readable on Github, they must be decrypted locally to be readable.', is_flag=True)
-def cli(token, new_repo_name, date, make_readme, encrypt):
+@click.group(invoke_without_command=True)
+@click.pass_context
+def cli(ctx):
     """ A minimal command-line journal that saves to a Github repo """
-    if token is not None:
-        set_token(token)
-        return None
+    # Check if config is setup before run, set up if not made yet
+    if not os.path.exists(get_config_file()):
+        make_empty_config()
+    # If no subcommands are passed this is run
+    if ctx.invoked_subcommand is None:
+        if get_token() == '':
+            print("No personal access token added. To set token, user 'ghlog config -t <token>'")
+            print("Get help setting up at https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/creating-a-personal-access-token. Only repo permission is necessary.")
+            return None
+        add_entry()
 
-    if new_repo_name is not None:
-        create_repo(repo_name=new_repo_name)
-        return None
 
-    if date is not None:
-        print(get_logs_by_date(date))
-        return None
-
-    if make_readme:
-        make_readme_md()
-        return None
-
+@cli.command()
+@click.option('-t', '--set-token', 'new_token', help='Set Github personal access token.')
+@click.option('-e', '--encrypt', help='Encrypt your logs from now on. Warning: your logs will not be readable on Github, they must be decrypted locally to be readable.', is_flag=True)
+@click.option('-r', '--repo', 'new_repo_name', help='Name the repository you want logs to be stored in. If it does not exist, it will be created for you.')
+def config(encrypt, new_token, new_repo_name):
+    """ Configure ghlog. See ghlog config --help for options """
     if encrypt:
         make_encryption_key()
-        return None
 
-    config_file = os.path.expanduser("~") + "/.config/ghlog/config.ini"
-    # This doesn't work if token was deleted from file, which is unlikely but still possible
-    if not os.path.exists(config_file):
-        print("No personal access token added. To set token, user 'ghlog -t <token>'")
-        print("Get help setting up at https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/creating-a-personal-access-token. Only repo permission is necessary.")
-        return None
+    if new_token is not None:
+        set_token(new_token)
 
-    add_entry()
+    if new_repo_name is not None:
+        # Check if repo exists before creating it
+        create_repo(repo_name=new_repo_name)
 
 
-def get_logs_by_date(datestring):
+@cli.command()
+@click.argument('datestring')
+def fetch(datestring):
+    """ Returns logs from the passed date (Use format yyyy/mm/dd)"""
     output_lines = []
     output = ""
     token = get_token()
@@ -56,7 +54,6 @@ def get_logs_by_date(datestring):
     repo = user.get_repo(get_remote_name())
     try:
         contents = repo.get_contents("entries/" + datestring)
-        # This could be reused to work for year and month spaces of time
         while contents:
             file_content = contents.pop(0)
             if file_content.type == "dir":
@@ -69,10 +66,49 @@ def get_logs_by_date(datestring):
         output = '\n'.join(output_lines)
     except Exception:
         output = "No entries found for specified day(s)"
-    return output
+    print(output)
 
 
-def create_repo(repo_name="My-Log"):
+@cli.command()
+# Add option to store locally
+@click.option('-l', '--local', 'local', help='Save the README.md file locally to cwd', is_flag=True)
+def make_readme(local):
+    """ Makes readme in Github repo out of uploaded logs """
+    print("Creating readme...")
+    last_date = "0000/00/00"
+    output_lines = []
+
+    token = get_token()
+    g = Github(token)
+    user = g.get_user()
+    repo = user.get_repo(get_remote_name())
+    contents = repo.get_contents("")
+    while contents:
+        file_content = contents.pop(0)
+        if file_content.type == "dir":
+            contents.extend(repo.get_contents(file_content.path))
+        else:
+            this_date = (file_content.path)[8:-13]
+            # The 2 lines below remove files that are in the root directory, which are not logs
+            if (file_content.path)[7] != '/':
+                continue
+            if this_date > last_date:
+                output_lines.append(add_headers(last_date, this_date))
+            last_date = this_date
+            if local:
+                output_lines.append(decrypt_text(file_content.decoded_content.decode()))
+            else:
+                output_lines.append(file_content.decoded_content.decode())
+    output = '\n'.join(output_lines)
+    readme_contents = repo.get_contents("README.md", ref="main")
+    if local:
+        with open("README.md", 'w') as f:
+            f.write(output)
+    else:
+        repo.update_file("README.md", "Update README.md", output, readme_contents.sha, branch="main")
+
+
+def create_repo(repo_name="mylog"):
     token = get_token()
     g = Github(token)
     user = g.get_user()
@@ -99,7 +135,7 @@ def create_repo(repo_name="My-Log"):
 def add_entry():
     # Check if repo exists, if not create it
     # This method doesn't work if the user deleted their remote but kept their config file
-    if get_remote_name() is None:
+    if get_remote_name() == '':
         # Ask what the user would like to call their repo before creating it; default to My-ghlog
         create_repo()
 
@@ -120,34 +156,6 @@ def add_entry():
     if get_encryption_key() is not None:
         contents = encrypt_text(contents)
     repo.create_file(filename, message, contents, branch="main")
-
-
-def make_readme_md():
-    print("Creating readme...")
-    last_date = "0000/00/00"
-    output_lines = []
-
-    token = get_token()
-    g = Github(token)
-    user = g.get_user()
-    repo = user.get_repo(get_remote_name())
-    contents = repo.get_contents("")
-    while contents:
-        file_content = contents.pop(0)
-        if file_content.type == "dir":
-            contents.extend(repo.get_contents(file_content.path))
-        else:
-            this_date = (file_content.path)[8:-13]
-            # The 2 lines below remove files that are in the root directory, which are not logs
-            if (file_content.path)[7] != '/':
-                continue
-            if this_date > last_date:
-                output_lines.append(add_headers(last_date, this_date))
-            last_date = this_date
-            output_lines.append(file_content.decoded_content.decode())
-    output = '\n'.join(output_lines)
-    readme_contents = repo.get_contents("README.md", ref="main")
-    repo.update_file("README.md", "Update README.md", output, readme_contents.sha, branch="main")
 
 
 def add_headers(last_date, this_date):
