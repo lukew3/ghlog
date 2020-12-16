@@ -26,7 +26,6 @@ def cli(ctx):
 
 
 @cli.command()
-@click.argument('config')
 @click.option('-t', '--set-token', 'new_token', help='Set Github personal access token.')
 @click.option('-e', '--encrypt', help='Encrypt your logs from now on. Warning: your logs will not be readable on Github, they must be decrypted locally to be readable.', is_flag=True)
 @click.option('-r', '--repo', 'new_repo_name', help='Name the repository you want logs to be stored in. If it does not exist, it will be created for you.')
@@ -72,7 +71,8 @@ def fetch(datestring):
 
 @cli.command()
 # Add option to store locally
-def make_readme():
+@click.option('-l', '--local', 'local', help='Save the README.md file locally to cwd', is_flag=True)
+def make_readme(local):
     """ Makes readme in Github repo out of uploaded logs """
     print("Creating readme...")
     last_date = "0000/00/00"
@@ -95,13 +95,20 @@ def make_readme():
             if this_date > last_date:
                 output_lines.append(add_headers(last_date, this_date))
             last_date = this_date
-            output_lines.append(file_content.decoded_content.decode())
+            if local:
+                output_lines.append(decrypt_text(file_content.decoded_content.decode()))
+            else:
+                output_lines.append(file_content.decoded_content.decode())
     output = '\n'.join(output_lines)
     readme_contents = repo.get_contents("README.md", ref="main")
-    repo.update_file("README.md", "Update README.md", output, readme_contents.sha, branch="main")
+    if local:
+        with open("README.md", 'w') as f:
+            f.write(output)
+    else:
+        repo.update_file("README.md", "Update README.md", output, readme_contents.sha, branch="main")
 
 
-def create_repo(repo_name="My-Log"):
+def create_repo(repo_name="mylog"):
     token = get_token()
     g = Github(token)
     user = g.get_user()
@@ -128,7 +135,7 @@ def create_repo(repo_name="My-Log"):
 def add_entry():
     # Check if repo exists, if not create it
     # This method doesn't work if the user deleted their remote but kept their config file
-    if get_remote_name() is None:
+    if get_remote_name() == '':
         # Ask what the user would like to call their repo before creating it; default to My-ghlog
         create_repo()
 

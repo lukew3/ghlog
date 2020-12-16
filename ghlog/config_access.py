@@ -44,7 +44,8 @@ def set_token(token):
         f = open(config_file, 'w')
         f.close()
     config = configparser.ConfigParser()
-    config['DEFAULT'] = {'user_token': token}
+    config.read(get_config_file())
+    config['DEFAULT']['user_token'] = token
     with open(config_file, 'w') as configfile:
         config.write(configfile)
     print("token set")
