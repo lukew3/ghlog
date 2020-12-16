@@ -1,5 +1,6 @@
 # ghlog
-![ghlog_logo](https://github.com/lukew3/ghlog/blob/main/ghlog_logo.png?raw=true)
+<img src="https://github.com/lukew3/ghlog/blob/main/ghlog_logo.png?raw=true" align="left" height="48" width="48" >
+
 ## About
 ghlog (Github Log) allows you to create a digital logbook/journal stored as a Github repository. Easily write time and date marked journal entries through the cli. [Here's an example of what a full repo might look like.](https://github.com/lukew3/ghlog-demo)
 

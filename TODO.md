@@ -4,8 +4,6 @@
 
 * Option to delete last entry in case a person regrets would rather not publish what they just wrote
 
-* Make a logo for the app
-
 * Make README in Github actions instead of locally if possible
   * Might require adding token as repo secret
 
