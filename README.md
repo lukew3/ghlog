@@ -6,10 +6,12 @@ ghlog (Github Log) allows you to create a digital logbook/journal stored as a Gi
 ## Installation
 `pip install ghlog`
 
-## Simplicity
+## Features
+
+### Simplicity
 Ghlog enables users to quickly add a log entry from the terminal by using the command `ghlog`. After `ghlog` is run, a prompt will appear and you simply type the text you wish to add.
 
-## Security
+### Security
 Storing possibly sensitive information publicly is not a good idea. To protect your privacy, ghlog automatically saves to a private repository so that other Github users cannot access your logs. If you are more concerned that somebody might hack your account or access your data from inside of Github, you can encrypt your logs, using `ghlog config -e`.
 
 ## Usage
