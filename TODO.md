@@ -17,8 +17,7 @@
 
 * Add capability to not pass an argument for -f to get all logs in journal
 
-* Make the documentation for -f more understandable
-
 * Add option to save readme locally
 
-* Add option to unencrypt in config
+* If there already is an encryption key in config, decrypt and re-encrypt logs currently in Repository
+  * Currently, logs are just encrypted twice, thus making the data umreadable

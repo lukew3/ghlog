@@ -99,3 +99,11 @@ def get_encryption_key():
         return ''
     key = key_string.encode('UTF-8')
     return key
+
+
+def remove_encryption_key():
+    config = configparser.ConfigParser()
+    config.read(get_config_file())
+    config["DEFAULT"]["encryption_key"] = ''
+    with open(get_config_file(), 'w') as configfile:
+        config.write(configfile)

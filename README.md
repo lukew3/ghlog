@@ -5,6 +5,7 @@ ghlog (Github Log) allows you to create a digital logbook/journal stored as a Gi
 
 ## Installation
 `pip install ghlog`
+After installation, you need to add a Github Personal Access Token in order for ghlog to work. To do this, [generate a personal access token](https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/creating-a-personal-access-token) and add it to ghlog with `ghlog config -t <personal-access-token>`
 
 ## Features
 
@@ -20,16 +21,16 @@ Storing possibly sensitive information publicly is not a good idea. To protect y
 * `ghlog config -t <personal-access-token>` - Sets the personal access token to the token provided.
   * Instructions for creating a token can be found [here](https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/creating-a-personal-access-token)
 * `ghlog config -r <new-repo-name>` - Creates a new ghlogbook repository with the passed name. Sets as repo to write logs to.
-* `ghlog config -e` - Encrypts your logs from now on. Encryption key stored locally in .config/ghlog/config.ini file.
+* `ghlog config -e` - Encrypts your logs from now on. Encryption key is stored locally in .config/ghlog/config.ini file.
   * Repository is automatically set to private but encrypting logs can ease fears of account break-ins or internal snooping
   * Entries will not be readable via Github web interface.
   * Running this after an encryption key has already been set will ask if you want to overwrite old key with new key.
-### fetch
+* `ghlog config -d` - Removes encryption. Currently encrypted logs will be decrypted and key will be removed from local storage. Logs will no longer be encrypted when added.
 * `ghlog fetch <date>` - Fetches log entries from the specified date, month, or year. Date must be written in yyyy/mm/dd format
   * Can also pass a month in the format yyyy/mm or year in the format yyyy
 ### make-readme
 * `ghlog make-readme` - Makes a readme file out of submitted logs. Aiming to make this automatic possibly with github actions in a later update
-* `ghlog make-readme -l` - Makes a readme file out of submitted logs and saves locally instead of on Github. If logs were encrypted. They will be stored as an unencrypted README in your current directory.
+* `ghlog make-readme -l` - Makes a readme file out of submitted logs and saves locally instead of on Github. If logs were encrypted, they will be stored as an unencrypted README in your current directory.
 ### --help page
 * `ghlog --help` - Shows the following help text:
 ```

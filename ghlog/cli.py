@@ -3,7 +3,7 @@ import os
 import configparser
 from github import Github
 from datetime import datetime
-from .config_access import set_token, get_token, get_remote_name, make_encryption_key, get_encryption_key, get_config_file, make_empty_config
+from .config_access import set_token, get_token, get_remote_name, make_encryption_key, get_encryption_key, get_config_file, make_empty_config, remove_encryption_key
 import time
 from multiprocessing.pool import ThreadPool
 from cryptography.fernet import Fernet
@@ -28,11 +28,15 @@ def cli(ctx):
 @cli.command()
 @click.option('-t', '--set-token', 'new_token', help='Set Github personal access token.')
 @click.option('-e', '--encrypt', help='Encrypt your logs from now on. Warning: your logs will not be readable on Github, they must be decrypted locally to be readable.', is_flag=True)
+@click.option('-d', '--decrypt', help='Removes encryption. Currently encrypted logs will be decrypted and key will be removed from local storage. Logs will no longer be encrypted when added', is_flag=True)
 @click.option('-r', '--repo', 'new_repo_name', help='Name the repository you want logs to be stored in. If it does not exist, it will be created for you.')
-def config(encrypt, new_token, new_repo_name):
+def config(encrypt, decrypt, new_token, new_repo_name):
     """ Configure ghlog. See ghlog config --help for options """
     if encrypt:
-        make_encryption_key()
+        activate_encryption()
+
+    if decrypt:
+        remove_encryption()
 
     if new_token is not None:
         set_token(new_token)
@@ -60,7 +64,7 @@ def fetch(datestring):
                 contents.extend(repo.get_contents(file_content.path))
             else:
                 log_contents = file_content.decoded_content.decode()
-                if get_encryption_key() is not None:
+                if get_encryption_key() != '':
                     log_contents = decrypt_text(log_contents)
                 output_lines.append(log_contents)
         output = '\n'.join(output_lines)
@@ -102,8 +106,8 @@ def make_readme(local):
     output = '\n'.join(output_lines)
     readme_contents = repo.get_contents("README.md", ref="main")
     if local:
-        with open("README.md", 'w') as f:
-            f.write(output)
+        with open("README.md", 'w') as g:
+            g.write(output)
     else:
         repo.update_file("README.md", "Update README.md", output, readme_contents.sha, branch="main")
 
@@ -192,3 +196,44 @@ def decrypt_text(input):
     decrypted = f.decrypt(encoded)
     output = decrypted.decode()
     return output
+
+def activate_encryption():
+    make_encryption_key()
+    encrypted_line = ""
+    token = get_token()
+    g = Github(token)
+    user = g.get_user()
+    repo = user.get_repo(get_remote_name())
+    contents = repo.get_contents("")
+    while contents:
+        file_content = contents.pop(0)
+        if file_content.type == "dir":
+            contents.extend(repo.get_contents(file_content.path))
+        else:
+            # The 2 lines below remove files that are in the root directory, which are not logs
+            if (file_content.path)[7] != '/':
+                continue
+            encrypted_line = encrypt_text(file_content.decoded_content.decode())
+            file = repo.get_contents(file_content.path, ref="main")
+            repo.update_file(file_content.path, "Encrypt logs", encrypted_line, file.sha, branch="main")
+
+
+def remove_encryption():
+    decrypted_line = ""
+    token = get_token()
+    g = Github(token)
+    user = g.get_user()
+    repo = user.get_repo(get_remote_name())
+    contents = repo.get_contents("")
+    while contents:
+        file_content = contents.pop(0)
+        if file_content.type == "dir":
+            contents.extend(repo.get_contents(file_content.path))
+        else:
+            # The 2 lines below remove files that are in the root directory, which are not logs
+            if (file_content.path)[7] != '/':
+                continue
+            decrypted_line = decrypt_text(file_content.decoded_content.decode())
+            file = repo.get_contents(file_content.path, ref="main")
+            repo.update_file(file_content.path, "Decrypt logs", decrypted_line, file.sha, branch="main")
+    remove_encryption_key()
