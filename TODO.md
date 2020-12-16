@@ -14,10 +14,14 @@
     * Same thing for days
 
 * It might be cool to have a progress bar when creating a README if it takes a long time when the repo gets bigger
-
-* Add capability to not pass an argument for -f to get all logs in journal
-
-* Add option to save readme locally
-
+  * Found this code:
+  ```
+  import time
+  from tqdm import tqdm
+  for _ in tqdm(range(100)):
+    time.sleep(1)
+  ```
+    * I would have to calculate the number of files in the specified range before grabbing their data. That might take a lot of time to get, which kind of ruins the whole thing. However, I might be able to get it quickly, I just havent tried it yet.
+    
 * If there already is an encryption key in config, decrypt and re-encrypt logs currently in Repository
   * Currently, logs are just encrypted twice, thus making the data umreadable
