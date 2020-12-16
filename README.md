@@ -1,10 +1,12 @@
 # ghlog
 
 ## About
-ghlog (Github Log) allows you to create a digital logbook/journal stored as a Github repository. Easily write time and date marked journal entries through the command line.
+ghlog (Github Log) allows you to create a digital logbook/journal stored as a Github repository. Easily write time and date marked journal entries through the cli.
 
 ## Installation
 `pip install ghlog`
+After installation, you need to add a Github Personal Access Token in order for ghlog to work. To do this, [generate a personal access token](https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/creating-a-personal-access-token) and add it to ghlog with `ghlog config -t <personal-access-token>`
+
 After installation, you need to add a Github Personal Access Token in order for ghlog to work. To do this, [generate a personal access token](https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/creating-a-personal-access-token) and add it to ghlog with `ghlog config -t <personal-access-token>`
 
 ## Features
