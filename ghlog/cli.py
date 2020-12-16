@@ -47,7 +47,7 @@ def config(encrypt, decrypt, new_token, new_repo_name):
 
 
 @cli.command()
-@click.argument('datestring')
+@click.argument('datestring', default='')
 def fetch(datestring):
     """ Returns logs from the passed date (Use format yyyy/mm/dd)"""
     output_lines = []
