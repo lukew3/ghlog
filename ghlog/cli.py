@@ -69,7 +69,7 @@ def fetch(datestring):
                 file_count += 1
 
         # initialize progress bar
-        pbar = tqdm(total = file_count)
+        pbar = tqdm(total=file_count)
         # Get file contents and add to output_lines
         contents = repo.get_contents("entries/" + datestring)
         while contents:
