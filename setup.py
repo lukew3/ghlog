@@ -9,7 +9,7 @@ setup(
     author_email='lukew25073@gmail.com',
     license='MIT',
     packages=find_packages(),
-    install_requires=['pygithub', 'tqdm'],
+    install_requires=['pygithub', 'tqdm', 'click'],
     entry_points={
         'console_scripts': ['ghlog=ghlog.cli:cli'],
     },
