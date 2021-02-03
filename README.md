@@ -28,10 +28,11 @@ To protect your privacy, ghlog automatically saves to a private repository so th
   * Entries will not be readable via Github web interface.
   * Running this after an encryption key has already been set will ask if you want to overwrite old key with new key.
 * `ghlog config -d` - Removes encryption. Currently encrypted logs will be decrypted and key will be removed from local storage. Logs will no longer be encrypted when added.
+### fetch
 * `ghlog fetch <date>` - Fetches log entries from the specified date, month, or year. Date must be written in yyyy/mm/dd format
   * Can also pass a month in the format yyyy/mm or year in the format yyyy
   * If no date is specified, all logs will be fetched
-  * Using the `-t` tag with no date will return logs from today
+* `ghlog fetch -t` - Returns logs from today only
 ### make-readme
 * `ghlog make-readme` - Makes a readme file out of submitted logs. Aiming to make this automatic possibly with github actions in a later update
 * `ghlog make-readme -l` - Makes a readme file out of submitted logs and saves locally instead of on Github. If logs were encrypted, they will be stored as an unencrypted README in your current directory.
