@@ -31,6 +31,7 @@ To protect your privacy, ghlog automatically saves to a private repository so th
 * `ghlog fetch <date>` - Fetches log entries from the specified date, month, or year. Date must be written in yyyy/mm/dd format
   * Can also pass a month in the format yyyy/mm or year in the format yyyy
   * If no date is specified, all logs will be fetched
+  * Using the `-t` tag with no date will return logs from today
 ### make-readme
 * `ghlog make-readme` - Makes a readme file out of submitted logs. Aiming to make this automatic possibly with github actions in a later update
 * `ghlog make-readme -l` - Makes a readme file out of submitted logs and saves locally instead of on Github. If logs were encrypted, they will be stored as an unencrypted README in your current directory.

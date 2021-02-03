@@ -49,7 +49,8 @@ def config(encrypt, decrypt, new_token, new_repo_name):
 
 @cli.command()
 @click.argument('datestring', default='')
-def fetch(datestring):
+@click.option('-t', '--today', is_flag=True)
+def fetch(datestring, today):
     """ Returns logs from the passed date (Use format yyyy/mm/dd)"""
     output_lines = []
     output = ""
@@ -57,6 +58,9 @@ def fetch(datestring):
     g = Github(token)
     user = g.get_user()
     repo = user.get_repo(get_remote_name())
+    if today and datestring == '':
+        now = datetime.now()
+        datestring = now.strftime("%Y/%m/%d")
     try:
         contents = repo.get_contents("entries/" + datestring)
         # Count number of files; This takes about half a second for 20 files
