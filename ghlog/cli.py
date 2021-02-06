@@ -120,7 +120,7 @@ def make_readme(local):
         if file_content.type == "dir":
             contents.extend(repo.get_contents(file_content.path))
         else:
-            this_date = (file_content.path)[8:-13]
+            this_date = (file_content.path)[8:18]
             # The 2 lines below remove files that are in the root directory, which are not logs
             if (file_content.path)[7] != '/':
                 continue
