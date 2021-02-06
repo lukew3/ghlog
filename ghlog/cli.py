@@ -9,6 +9,7 @@ from tqdm import tqdm
 from multiprocessing.pool import ThreadPool
 from cryptography.fernet import Fernet
 
+
 @click.group(invoke_without_command=True)
 @click.pass_context
 def cli(ctx):
@@ -58,13 +59,13 @@ def fetch(datestring, today):
     user = g.get_user()
     repo = user.get_repo(get_remote_name())
     if today and datestring == '':
-        now = datetime.now()
+        datestring = datetime.now().strftime("%Y/%m/%d")
     try:
         if datestring == '':
             contents = repo.get_contents("entries")
         else:
             contents = repo.get_contents("entries/" + datestring)
-        
+
         # Count number of files; This takes about half a second for 20 files
         file_count = 0
         while contents:
@@ -81,7 +82,7 @@ def fetch(datestring, today):
             contents = repo.get_contents("entries")
         else:
             contents = repo.get_contents("entries/" + datestring)
-        
+
         while contents:
             file_content = contents.pop(0)
             if file_content.type == "dir":
