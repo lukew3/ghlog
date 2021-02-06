@@ -8,6 +8,8 @@ import time
 from tqdm import tqdm
 from multiprocessing.pool import ThreadPool
 from cryptography.fernet import Fernet
+from .mod_config import mod_config
+from .mod_fetch import mod_fetch
 
 
 @click.group(invoke_without_command=True)
@@ -32,19 +34,7 @@ def cli(ctx):
 @click.option('-d', '--decrypt', help='Removes encryption. Currently encrypted logs will be decrypted and key will be removed from local storage. Logs will no longer be encrypted when added', is_flag=True)
 @click.option('-r', '--repo', 'new_repo_name', help='Name the repository you want logs to be stored in. If it does not exist, it will be created for you.')
 def config(encrypt, decrypt, new_token, new_repo_name):
-    """ Configure ghlog. See ghlog config --help for options """
-    if encrypt:
-        activate_encryption()
-
-    if decrypt:
-        remove_encryption()
-
-    if new_token is not None:
-        set_token(new_token)
-
-    if new_repo_name is not None:
-        # Check if repo exists before creating it
-        create_repo(repo_name=new_repo_name)
+    mod_config(encrypt, decrypt, new_token, new_repo_name)
 
 
 @cli.command()
@@ -52,53 +42,7 @@ def config(encrypt, decrypt, new_token, new_repo_name):
 @click.option('-t', '--today', is_flag=True)
 def fetch(datestring, today):
     """ Returns logs from the passed date (Use format yyyy/mm/dd)"""
-    output_lines = []
-    output = ""
-    token = get_token()
-    g = Github(token)
-    user = g.get_user()
-    repo = user.get_repo(get_remote_name())
-    if today and datestring == '':
-        datestring = datetime.now().strftime("%Y/%m/%d")
-    try:
-        if datestring == '':
-            contents = repo.get_contents("entries")
-        else:
-            contents = repo.get_contents("entries/" + datestring)
-
-        # Count number of files; This takes about half a second for 20 files
-        file_count = 0
-        while contents:
-            file_content = contents.pop(0)
-            if file_content.type == "dir":
-                contents.extend(repo.get_contents(file_content.path))
-            else:
-                file_count += 1
-
-        # initialize progress bar
-        pbar = tqdm(total=file_count)
-        # Get file contents and add to output_lines
-        if datestring == '':
-            contents = repo.get_contents("entries")
-        else:
-            contents = repo.get_contents("entries/" + datestring)
-
-        while contents:
-            file_content = contents.pop(0)
-            if file_content.type == "dir":
-                contents.extend(repo.get_contents(file_content.path))
-            else:
-                log_contents = file_content.decoded_content.decode()
-                if get_encryption_key() != '':
-                    log_contents = decrypt_text(log_contents)
-                output_lines.append(log_contents)
-                pbar.update(1)
-        output = '\n'.join(output_lines)
-        pbar.close()
-    except Exception as ex:
-        print(ex)
-        output = "No entries found for specified day(s)"
-    print(output)
+    mod_fetch(datestring, today)
 
 
 @cli.command()
@@ -210,59 +154,3 @@ def add_headers(last_date, this_date):
     output = '\n'.join(output_lines)
     return output
 
-
-def encrypt_text(input):
-    encoded = input.encode()
-    f = Fernet(get_encryption_key())
-    encrypted = f.encrypt(encoded)
-    return encrypted
-
-
-def decrypt_text(input):
-    encoded = input.encode()
-    f = Fernet(get_encryption_key())
-    decrypted = f.decrypt(encoded)
-    output = decrypted.decode()
-    return output
-
-
-def activate_encryption():
-    make_encryption_key()
-    encrypted_line = ""
-    token = get_token()
-    g = Github(token)
-    user = g.get_user()
-    repo = user.get_repo(get_remote_name())
-    contents = repo.get_contents("")
-    while contents:
-        file_content = contents.pop(0)
-        if file_content.type == "dir":
-            contents.extend(repo.get_contents(file_content.path))
-        else:
-            # The 2 lines below remove files that are in the root directory, which are not logs
-            if (file_content.path)[7] != '/':
-                continue
-            encrypted_line = encrypt_text(file_content.decoded_content.decode())
-            file = repo.get_contents(file_content.path, ref="main")
-            repo.update_file(file_content.path, "Encrypt logs", encrypted_line, file.sha, branch="main")
-
-
-def remove_encryption():
-    decrypted_line = ""
-    token = get_token()
-    g = Github(token)
-    user = g.get_user()
-    repo = user.get_repo(get_remote_name())
-    contents = repo.get_contents("")
-    while contents:
-        file_content = contents.pop(0)
-        if file_content.type == "dir":
-            contents.extend(repo.get_contents(file_content.path))
-        else:
-            # The 2 lines below remove files that are in the root directory, which are not logs
-            if (file_content.path)[7] != '/':
-                continue
-            decrypted_line = decrypt_text(file_content.decoded_content.decode())
-            file = repo.get_contents(file_content.path, ref="main")
-            repo.update_file(file_content.path, "Decrypt logs", decrypted_line, file.sha, branch="main")
-    remove_encryption_key()
