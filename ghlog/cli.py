@@ -9,7 +9,6 @@ from tqdm import tqdm
 from multiprocessing.pool import ThreadPool
 from cryptography.fernet import Fernet
 
-
 @click.group(invoke_without_command=True)
 @click.pass_context
 def cli(ctx):
@@ -60,9 +59,12 @@ def fetch(datestring, today):
     repo = user.get_repo(get_remote_name())
     if today and datestring == '':
         now = datetime.now()
-        datestring = now.strftime("%Y/%m/%d")
     try:
-        contents = repo.get_contents("entries/" + datestring)
+        if datestring == '':
+            contents = repo.get_contents("entries")
+        else:
+            contents = repo.get_contents("entries/" + datestring)
+        
         # Count number of files; This takes about half a second for 20 files
         file_count = 0
         while contents:
@@ -75,7 +77,11 @@ def fetch(datestring, today):
         # initialize progress bar
         pbar = tqdm(total=file_count)
         # Get file contents and add to output_lines
-        contents = repo.get_contents("entries/" + datestring)
+        if datestring == '':
+            contents = repo.get_contents("entries")
+        else:
+            contents = repo.get_contents("entries/" + datestring)
+        
         while contents:
             file_content = contents.pop(0)
             if file_content.type == "dir":
@@ -88,7 +94,8 @@ def fetch(datestring, today):
                 pbar.update(1)
         output = '\n'.join(output_lines)
         pbar.close()
-    except Exception:
+    except Exception as ex:
+        print(ex)
         output = "No entries found for specified day(s)"
     print(output)
 

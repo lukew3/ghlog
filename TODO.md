@@ -21,3 +21,7 @@
   * Currently, logs are just encrypted twice, thus making the data umreadable
 
 * Could combine all files from a day into one after the day has passed. That would help with fetch times.
+
+* Add option in fetch that gets logs from today or yesterday
+  * Would have to override datestring argument
+  * If datestring == today, datestring = <the actual date today>
