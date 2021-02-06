@@ -1,3 +1,0 @@
-pygithub
-tqdm
-click
