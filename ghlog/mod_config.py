@@ -4,30 +4,14 @@ def mod_config(encrypt, decrypt, new_token, new_repo_name):
     """ Configure ghlog. See ghlog config --help for options """
     if encrypt:
         activate_encryption()
-
     if decrypt:
         remove_encryption()
-
     if new_token is not None:
         set_token(new_token)
-
     if new_repo_name is not None:
         # Check if repo exists before creating it
         create_repo(repo_name=new_repo_name)
 
-def mod_config():
-    if encrypt:
-        activate_encryption()
-
-    if decrypt:
-        remove_encryption()
-
-    if new_token is not None:
-        set_token(new_token)
-
-    if new_repo_name is not None:
-        # Check if repo exists before creating it
-        create_repo(repo_name=new_repo_name)
 
 def encrypt_text(input):
     encoded = input.encode()
