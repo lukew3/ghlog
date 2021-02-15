@@ -132,7 +132,7 @@ def make_readme(local):
             if local:
                 try:
                     output_lines.append(this_time + " - " + decrypt_text(file_content.decoded_content.decode()))
-                except:
+                except Exception:
                     output_lines.append(this_time + " - " + file_content.decoded_content.decode())
             else:
                 output_lines.append(this_time + " - " + file_content.decoded_content.decode())
