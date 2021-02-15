@@ -128,11 +128,11 @@ def make_readme(local):
             if this_date > last_date:
                 output_lines.append(add_headers(last_date, this_date))
             last_date = this_date
-            
+
             if local:
                 try:
                     output_lines.append(this_time + " - " + decrypt_text(file_content.decoded_content.decode()))
-                except e:
+                except:
                     output_lines.append(this_time + " - " + file_content.decoded_content.decode())
             else:
                 output_lines.append(this_time + " - " + file_content.decoded_content.decode())
