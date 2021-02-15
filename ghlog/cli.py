@@ -121,16 +121,21 @@ def make_readme(local):
             contents.extend(repo.get_contents(file_content.path))
         else:
             this_date = (file_content.path)[8:18]
+            this_time = os.path.splitext(os.path.basename(file_content.path))[0]
             # The 2 lines below remove files that are in the root directory, which are not logs
             if (file_content.path)[7] != '/':
                 continue
             if this_date > last_date:
                 output_lines.append(add_headers(last_date, this_date))
             last_date = this_date
+            
             if local:
-                output_lines.append(decrypt_text(file_content.decoded_content.decode()))
+                try:
+                    output_lines.append(this_time + " - " + decrypt_text(file_content.decoded_content.decode()))
+                except e:
+                    output_lines.append(this_time + " - " + file_content.decoded_content.decode())
             else:
-                output_lines.append(file_content.decoded_content.decode())
+                output_lines.append(this_time + " - " + file_content.decoded_content.decode())
     output = '\n'.join(output_lines)
     readme_contents = repo.get_contents("README.md", ref="main")
     if local:
